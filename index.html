@@ -6,16 +6,26 @@
     </head>
 
     <body>
-        <canvas id="chromaticCircle" width="500" height="350"></canvas>
+        <div class="config">
+            <button id="copy"><h1 id="hex">#FFFFFF</h1></button>
+
+            <canvas id="chromaticCircle" width="300" height="300"></canvas>
+            
+            <input type="range" id="brightnessSlider" min="0" max="100" value="100">
+             
+        </div>
         <script>
             const canvas = document.getElementById('chromaticCircle');
             const ctx = canvas.getContext('2d');
-            const selectedColorDiv = document.getElementById('selectedColor');
+            const brightnessSlider = document.getElementById('brightnessSlider');
+            const hexDisplay = document.getElementById('hex');
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             const radius = 140;
-            const numSegments = 5720;
+            const numSegments = 10440;
             const angleStep = (2 * Math.PI) / numSegments;
+            let brightness = 1;
+            let selectedColor = { h: 0, s: 1 };
 
             function hsvToRgb(h, s, v) {
                 let r, g, b;
@@ -32,49 +42,86 @@
                     case 4: r = t, g = p, b = v; break;
                     case 5: r = v, g = p, b = q; break;
                 }
-                return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+                return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
             }
 
-            for (let i = 0; i < numSegments; i++) {
-                const startAngle = i * angleStep;
-                const endAngle = startAngle + angleStep;
-                const color = hsvToRgb(i / numSegments, 1, 1);
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-                ctx.closePath();
-                ctx.fillStyle = color;
-                ctx.fill();
+            function rgbToHex(r, g, b) {
+                let hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+                return hex;
             }
 
-            canvas.addEventListener('click', (event) => {
-                const updateColor = (event) => {
-                    const rect = canvas.getBoundingClientRect();
-                    const x = event.clientX - rect.left;
-                    const y = event.clientY - rect.top;
-                    const imageData = ctx.getImageData(x, y, 1, 1).data;
-                    const color = `rgb(${imageData[0]}, ${imageData[1]}, ${imageData[2]})`;
-                    
-                    document.body.style.backgroundColor = color;
-
-                };
-
-                canvas.addEventListener('mousedown', () => {
-                    canvas.addEventListener('mousemove', updateColor);
+            document.getElementById('copy').addEventListener('click', () => {
+                    navigator.clipboard.writeText(hexDisplay.textContent);
+                    alert ("Copied to clipboard");
                 });
 
-                canvas.addEventListener('mouseup', () => {
-                    canvas.removeEventListener('mousemove', updateColor);
-                });
+            function drawChromaticCircle() {
+                for (let i = 0; i < numSegments; i++) {
+                    const startAngle = i * angleStep;
+                    const endAngle = startAngle + angleStep;
+                    const h = i / numSegments;
+                    const color = hsvToRgb(h, 1, brightness);
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                    ctx.closePath();
+                    ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+                    ctx.fill();
+                }
+            }
 
-                updateColor(event);
+            function updateBackgroundColor() {
+                const { r, g, b } = hsvToRgb(selectedColor.h, selectedColor.s, brightness);
+                const bgColor = `rgb(${r}, ${g}, ${b})`;
+                document.body.style.backgroundColor = bgColor;
+                hexDisplay.textContent = rgbToHex(r, g, b);
+            }
+
+            brightnessSlider.addEventListener('input', (event) => {
+                brightness = event.target.value / 100;
+                drawChromaticCircle();
+                updateBackgroundColor();
+            });
+
+            function updateColor(event) {
                 const rect = canvas.getBoundingClientRect();
                 const x = event.clientX - rect.left;
                 const y = event.clientY - rect.top;
-                const imageData = ctx.getImageData(x, y, 1, 1).data;
-                const color = `rgb(${imageData[0]}, ${imageData[1]}, ${imageData[2]})`;
-                selectedColorDiv.textContent = `Selected Color: ${color}`;
+                const dx = x - centerX;
+                const dy = y - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance <= radius) {
+                    const angle = Math.atan2(dy, dx);
+                    const h = (angle < 0 ? angle + 2 * Math.PI : angle) / (2 * Math.PI);
+                    selectedColor = { h, s: 1 };
+                    updateBackgroundColor();
+                }
+            }
+
+            let isDragging = false;
+
+            canvas.addEventListener("mousedown", (event) => {
+                isDragging = true;
+                updateColor(event);
             });
+
+            canvas.addEventListener("mousemove", (event) => {
+                if (isDragging) {
+                    updateColor(event);
+                }
+            });
+
+            canvas.addEventListener("mouseup", () => {
+                isDragging = false;
+            });
+
+            canvas.addEventListener("mouseleave", () => {
+                isDragging = false;
+            });
+
+            
+
+            drawChromaticCircle();
         </script>
 
     </body>
