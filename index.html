@@ -1,0 +1,81 @@
+<html>
+    <head>
+        <title>Color picker</title>
+        <link rel="stylesheet" href="style.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+
+    <body>
+        <canvas id="chromaticCircle" width="500" height="350"></canvas>
+        <script>
+            const canvas = document.getElementById('chromaticCircle');
+            const ctx = canvas.getContext('2d');
+            const selectedColorDiv = document.getElementById('selectedColor');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 140;
+            const numSegments = 5720;
+            const angleStep = (2 * Math.PI) / numSegments;
+
+            function hsvToRgb(h, s, v) {
+                let r, g, b;
+                let i = Math.floor(h * 6);
+                let f = h * 6 - i;
+                let p = v * (1 - s);
+                let q = v * (1 - f * s);
+                let t = v * (1 - (1 - f) * s);
+                switch (i % 6) {
+                    case 0: r = v, g = t, b = p; break;
+                    case 1: r = q, g = v, b = p; break;
+                    case 2: r = p, g = v, b = t; break;
+                    case 3: r = p, g = q, b = v; break;
+                    case 4: r = t, g = p, b = v; break;
+                    case 5: r = v, g = p, b = q; break;
+                }
+                return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+            }
+
+            for (let i = 0; i < numSegments; i++) {
+                const startAngle = i * angleStep;
+                const endAngle = startAngle + angleStep;
+                const color = hsvToRgb(i / numSegments, 1, 1);
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+
+            canvas.addEventListener('click', (event) => {
+                const updateColor = (event) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = event.clientX - rect.left;
+                    const y = event.clientY - rect.top;
+                    const imageData = ctx.getImageData(x, y, 1, 1).data;
+                    const color = `rgb(${imageData[0]}, ${imageData[1]}, ${imageData[2]})`;
+                    
+                    document.body.style.backgroundColor = color;
+
+                };
+
+                canvas.addEventListener('mousedown', () => {
+                    canvas.addEventListener('mousemove', updateColor);
+                });
+
+                canvas.addEventListener('mouseup', () => {
+                    canvas.removeEventListener('mousemove', updateColor);
+                });
+
+                updateColor(event);
+                const rect = canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                const imageData = ctx.getImageData(x, y, 1, 1).data;
+                const color = `rgb(${imageData[0]}, ${imageData[1]}, ${imageData[2]})`;
+                selectedColorDiv.textContent = `Selected Color: ${color}`;
+            });
+        </script>
+
+    </body>
+</html>
