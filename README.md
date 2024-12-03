@@ -2,25 +2,25 @@
 
 ![Color Picker](screenshot.png)
 
-## Descripción
+## Description
 
-Este proyecto es un selector de color interactivo que permite a los usuarios seleccionar un color del círculo cromático y ajustar su brillo. El color seleccionado se muestra en formato hexadecimal y se puede copiar al portapapeles.
+This project is an interactive color picker that allows users to select a color from a chromatic circle and adjust its brightness. The selected color is displayed in hexadecimal format and can be copied to the clipboard.
 
-## Características
+## Features
 
-- Selección de color desde un círculo cromático.
-- Ajuste de brillo del color seleccionado.
-- Visualización del color en formato hexadecimal.
-- Copia del valor hexadecimal al portapapeles.
+- Select color from a chromatic circle.
+- Adjust the brightness of the selected color.
+- Display the color in hexadecimal format.
+- Copy the hexadecimal value to the clipboard.
 
-## Tecnologías Utilizadas
+## Technologies Used
 
 - HTML5
 - CSS3
 - JavaScript
 
-## Instalación
+## Installation
 
-1. Clona este repositorio en tu máquina local.
+1. Clone this repository to your local machine.
    ```bash
-   git clone https://github.com/tu-usuario/color-picker.git
+   git clone https://github.com/your-username/color-picker.git
